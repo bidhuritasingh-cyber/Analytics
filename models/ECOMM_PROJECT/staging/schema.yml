@@ -1,0 +1,64 @@
+version: 2
+ 
+models:
+  - name: stg_orders
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+ 
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: "ref('stg_customers')"
+                field: customer_id
+ 
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - completed
+                  - returned
+                  - cancelled
+                  - processing
+                  - pending
+ 
+      - name: net_amount
+        tests:
+          - not_null
+ 
+      - name: total_amount
+        tests:
+          - not_null:
+              config: # FIXED: Indented 2 spaces to nest inside not_null
+                severity: warn
+
+  - name: stg_customers # FIXED: Changed from "-  name:" to "- name:" (removed the extra space)
+    description: > 
+      Cleaned and standardized customer records from the raw 
+      ECOMM_RAW.CUSTOMERS.customers table. One row per customer. 
+      Excludes customers with null customer_id. 
+    columns: 
+      - name: customer_id 
+        description: Unique identifier for each customer. Primary key. 
+      - name: full_name 
+        description: Concatenation of first_name and last_name. 
+      - name: email 
+        description: Customer email address. Lowercased for consistency. 
+ 
+  - name: fct_orders 
+    description: > 
+      Central fact table for orders. Joins order data with payment, 
+      shipment, and support ticket information. One row per order. 
+    columns: 
+      - name: order_id 
+        description: Unique identifier for each order. 
+      - name: order_tier 
+        description: > 
+          Classifies order value: high (>=5000), medium (>=2000), low (<2000). 
+      - name: is_delayed 
+        description: TRUE if the shipment was delivered after the expected date. 
