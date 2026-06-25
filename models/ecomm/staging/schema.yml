@@ -1,0 +1,38 @@
+version: 2
+
+models:
+  - name: stg_orders_ecomm
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - unique
+
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: "ref('stg_customers_ecomm')"
+                field: customer_id
+
+      - name: status
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - completed
+                  - returned
+                  - cancelled
+                  - processing
+                  - pending
+
+      - name: net_amount
+        tests:
+          - not_null
+
+      - name: total_amount
+        tests:
+          - not_null:
+              config:
+                severity: warn

@@ -1,0 +1,323 @@
+version: 2
+
+sources:
+
+  - name: customers
+    description: "customer master data including profiles and addresses"
+    database: ecomm_raw
+    schema: customers
+    tables:
+      - name: customers
+        description: "customer master — one row per customer"
+        columns:
+          - name: customer_id
+            description: "primary key — unique customer identifier"
+          - name: first_name
+            description: "customer first name"
+          - name: last_name
+            description: "customer last name"
+          - name: email
+            description: "customer email address"
+          - name: phone
+            description: "customer phone number"
+          - name: city
+            description: "city of residence"
+          - name: state
+            description: "state of residence"
+          - name: signup_date
+            description: "date customer registered"
+          - name: is_active
+            description: "true if customer account is active"
+          - name: updated_at
+            description: "last updated timestamp"
+
+      - name: customer_addresses
+        description: "customer shipping and billing addresses — one customer can have multiple"
+        columns:
+          - name: address_id
+            description: "primary key — unique address identifier"
+          - name: customer_id
+            description: "foreign key to customers table"
+          - name: address_type
+            description: "shipping or billing"
+          - name: street
+            description: "street address"
+          - name: city
+            description: "city"
+          - name: state
+            description: "state"
+          - name: pincode
+            description: "pin code"
+          - name: is_default
+            description: "true if this is the default address for the customer"
+
+  - name: orders
+    description: "order transactions including line items and status history"
+    database: ECOMM_RAW
+    schema: ORDERS
+    tables:
+      - name: orders
+        description: "order header — one row per order"
+        columns:
+          - name: order_id
+            description: "primary key — unique order identifier"
+          - name: customer_id
+            description: "foreign key to customers table"
+          - name: order_date
+            description: "date the order was placed"
+          - name: status
+            description: "current order status — pending, processing, completed, returned, cancelled"
+          - name: total_amount
+            description: "gross order value before discounts"
+          - name: discount_amount
+            description: "total discount applied to the order"
+          - name: shipping_amount
+            description: "shipping charge for the order"
+          - name: created_at
+            description: "timestamp when order was created"
+          - name: updated_at
+            description: "timestamp when order was last updated"
+
+      - name: order_items
+        description: "line items within each order — one row per product per order"
+        columns:
+          - name: item_id
+            description: "primary key — unique line item identifier"
+          - name: order_id
+            description: "foreign key to orders table"
+          - name: product_id
+            description: "foreign key to products table"
+          - name: quantity
+            description: "number of units ordered"
+          - name: unit_price
+            description: "price per unit at time of order"
+          - name: discount
+            description: "discount applied at line item level"
+
+      - name: order_status_history
+        description: "status change log for each order — one row per status transition"
+        columns:
+          - name: history_id
+            description: "primary key"
+          - name: order_id
+            description: "foreign key to orders table"
+          - name: status
+            description: "status value at this point in time"
+          - name: changed_at
+            description: "timestamp of status change"
+          - name: changed_by
+            description: "who triggered the change — system, warehouse, or customer"
+
+  - name: products
+    description: "product catalog"
+    database: ECOMM_RAW
+    schema: PRODUCTS
+    tables:
+      - name: products
+        description: "product master — one row per product"
+        columns:
+          - name: product_id
+            description: "primary key — unique product identifier"
+          - name: product_name
+            description: "display name of the product"
+          - name: category
+            description: "top-level category — electronics, furniture, accessories, stationery"
+          - name: sub_category
+            description: "sub-category within the main category"
+          - name: brand
+            description: "product brand"
+          - name: price
+            description: "selling price in inr"
+          - name: cost_price
+            description: "cost price in inr"
+          - name: is_active
+            description: "true if product is currently listed"
+          - name: launched_at
+            description: "date product was first listed"
+
+  - name: inventory
+    description: "warehouse stock levels per product"
+    database: ECOMM_RAW
+    schema: INVENTORY
+    tables:
+      - name: warehouses
+        description: "warehouse master — one row per warehouse"
+        columns:
+          - name: warehouse_id
+            description: "primary key — unique warehouse identifier"
+          - name: warehouse_name
+            description: "name of the warehouse"
+          - name: city
+            description: "city where warehouse is located"
+          - name: state
+            description: "state where warehouse is located"
+          - name: capacity
+            description: "maximum storage capacity in units"
+          - name: is_active
+            description: "true if warehouse is operational"
+
+      - name: inventory
+        description: "stock levels per product per warehouse — one row per product-warehouse combination"
+        columns:
+          - name: inventory_id
+            description: "primary key"
+          - name: product_id
+            description: "foreign key to products table"
+          - name: warehouse_id
+            description: "foreign key to warehouses table"
+          - name: stock_qty
+            description: "current stock quantity available"
+          - name: reorder_level
+            description: "stock level at which replenishment should be triggered"
+          - name: last_updated
+            description: "timestamp of last stock update"
+
+  - name: marketing
+    description: "marketing campaigns and customer click events"
+    database: ECOMM_RAW
+    schema: MARKETING
+    tables:
+      - name: campaigns
+        description: "campaign master — one row per campaign"
+        columns:
+          - name: campaign_id
+            description: "primary key — unique campaign identifier"
+          - name: campaign_name
+            description: "name of the campaign"
+          - name: channel
+            description: "marketing channel — google ads, meta ads, email"
+          - name: start_date
+            description: "campaign start date"
+          - name: end_date
+            description: "campaign end date"
+          - name: budget
+            description: "allocated budget in inr"
+          - name: spend
+            description: "actual amount spent in inr"
+          - name: target_segment
+            description: "target customer segment for this campaign"
+
+      - name: campaign_clicks
+        description: "click events per campaign per customer"
+        columns:
+          - name: click_id
+            description: "primary key — unique click event identifier"
+          - name: campaign_id
+            description: "foreign key to campaigns table"
+          - name: customer_id
+            description: "foreign key to customers table"
+          - name: clicked_at
+            description: "timestamp of the click"
+          - name: device_type
+            description: "device used — mobile, desktop, tablet"
+          - name: converted
+            description: "true if the click resulted in a purchase"
+
+  - name: logistics
+    description: "shipment and delivery tracking data"
+    database: ECOMM_RAW
+    schema: LOGISTICS
+    tables:
+      - name: shipments
+        description: "one shipment per order — tracks carrier and delivery dates"
+        columns:
+          - name: shipment_id
+            description: "primary key — unique shipment identifier"
+          - name: order_id
+            description: "foreign key to orders table"
+          - name: warehouse_id
+            description: "warehouse the shipment was dispatched from"
+          - name: carrier
+            description: "courier partner — bluedart, delhivery, fedex"
+          - name: tracking_number
+            description: "carrier tracking number"
+          - name: shipped_date
+            description: "date order was dispatched"
+          - name: expected_date
+            description: "expected delivery date"
+          - name: delivered_date
+            description: "actual delivery date — null if not yet delivered"
+          - name: status
+            description: "current shipment status — delivered, in_transit, returned, pending"
+
+      - name: delivery_events
+        description: "event log for each shipment — one row per scan/status update"
+        columns:
+          - name: event_id
+            description: "primary key"
+          - name: shipment_id
+            description: "foreign key to shipments table"
+          - name: event_type
+            description: "type of event — picked_up, in_transit, out_for_delivery, delivered"
+          - name: event_time
+            description: "timestamp of the event"
+          - name: location
+            description: "location where the event was recorded"
+
+  - name: finance
+    description: "invoice and payment records"
+    database: ECOMM_RAW
+    schema: FINANCE
+    tables:
+      - name: invoices
+        description: "one invoice per order — tracks amount due and payment status"
+        columns:
+          - name: invoice_id
+            description: "primary key — unique invoice identifier"
+          - name: order_id
+            description: "foreign key to orders table"
+          - name: invoice_date
+            description: "date invoice was raised"
+          - name: due_date
+            description: "payment due date"
+          - name: amount
+            description: "invoice amount in inr"
+          - name: tax_amount
+            description: "gst/tax component in inr"
+          - name: status
+            description: "invoice status — paid, pending, refunded, cancelled"
+
+      - name: payments
+        description: "payment transactions per order"
+        columns:
+          - name: payment_id
+            description: "primary key — unique payment identifier"
+          - name: order_id
+            description: "foreign key to orders table"
+          - name: payment_date
+            description: "date payment was made"
+          - name: payment_method
+            description: "method used — credit_card, debit_card, upi, netbanking"
+          - name: amount
+            description: "amount paid in inr"
+          - name: status
+            description: "payment status — success, refunded, failed"
+          - name: gateway
+            description: "payment gateway used — razorpay, stripe, phonepe, gpay"
+
+  - name: support
+    description: "customer support ticket data"
+    database: ECOMM_RAW
+    schema: SUPPORT
+    tables:
+      - name: support_tickets
+        description: "one row per support ticket raised by a customer"
+        columns:
+          - name: ticket_id
+            description: "primary key — unique ticket identifier"
+          - name: customer_id
+            description: "foreign key to customers table"
+          - name: order_id
+            description: "foreign key to orders table — order the ticket relates to"
+          - name: ticket_type
+            description: "type of issue — return_request, cancellation, delivery_query, payment_issue, product_query"
+          - name: priority
+            description: "ticket priority — high, medium, low"
+          - name: status
+            description: "current ticket status — open, resolved"
+          - name: created_at
+            description: "timestamp when ticket was raised"
+          - name: resolved_at
+            description: "timestamp when ticket was resolved — null if still open"
+          - name: sla_hours
+            description: "sla target in hours — time within which ticket must be resolved"
